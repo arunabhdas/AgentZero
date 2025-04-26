@@ -1,4 +1,4 @@
-package app.agentzero.agentzeroapp.model
+package app.agentzero.agentzeroapp.data.model
 
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
