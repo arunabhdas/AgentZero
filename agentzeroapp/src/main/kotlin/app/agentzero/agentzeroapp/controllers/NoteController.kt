@@ -4,8 +4,10 @@ import app.agentzero.agentzeroapp.data.model.Note
 import app.agentzero.agentzeroapp.data.repository.NoteRepository
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Repository
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
 
@@ -44,12 +46,26 @@ class NoteController(
                 ownerId = ObjectId(body.ownerId)
             )
         )
+        return note.toResponse()
+
+    }
+
+    @GetMapping
+    fun findByOwnerId(
+        @RequestParam(required = true) ownerId: String,
+    ): List<NoteResponse> {
+        return repository.findByOwnerId(ObjectId(ownerId)).map {
+            it.toResponse()
+        }
+    }
+
+    private fun Note.toResponse(): NoteController.NoteResponse {
         return NoteResponse(
-            id = note.id.toHexString(),
-            title = note.title,
-            content = note.content,
-            color = note.color,
-            createdAt = note.createdAt
+            id = id.toHexString(),
+            title = title,
+            content = content,
+            color = color,
+            createdAt = createdAt
         )
     }
 }
