@@ -34,6 +34,7 @@ class NoteController(
         val createdAt: Instant
 
     )
+    // Upsert - Updates if id is provided, else insert and generate new id
     @PostMapping
     fun save(body: NoteRequest): NoteResponse {
         val note = repository.save(
