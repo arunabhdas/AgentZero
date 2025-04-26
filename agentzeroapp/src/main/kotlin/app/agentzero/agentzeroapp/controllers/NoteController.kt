@@ -22,7 +22,7 @@ class NoteController(
         val id: String?,
         val title: String,
         val content: String,
-        val color: Long,
+        val color: String,
         val ownerId: String
     )
 
@@ -30,7 +30,7 @@ class NoteController(
         val id: String,
         val title: String,
         val content: String,
-        val color: Long,
+        val color: String,
         val createdAt: Instant
 
     )
