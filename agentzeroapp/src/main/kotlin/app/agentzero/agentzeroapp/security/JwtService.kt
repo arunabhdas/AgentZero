@@ -1,10 +1,12 @@
 package app.agentzero.agentzeroapp.security
 
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwt
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.awt.print.Book
 import java.time.Instant.now
 import java.util.Base64
 import java.util.Date
@@ -52,6 +54,30 @@ class JwtService(
             type = "refresh",
             expiry = refreshTokenValidityMs
         )
+    }
+
+    fun validateAccessToken(token: String): Boolean {
+        val claims = parseAllClaims(token) ?: return false
+        val tokenType = claims["type"] as? String ?: return false
+        return tokenType == "access"
+    }
+
+    fun validateRefreshToken(token: String): Boolean {
+        val claims = parseAllClaims(token) ?: return false
+        val tokenType = claims["type"] as? String ?: return false
+        return tokenType == "refresh"
+    }
+
+    private fun parseAllClaims(token: String): Claims? {
+        return try {
+            Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .payload
+        } catch (e: Exception) {
+            null
+        }
     }
 
 }
