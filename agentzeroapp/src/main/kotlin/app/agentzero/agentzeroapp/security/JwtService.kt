@@ -68,6 +68,15 @@ class JwtService(
         return tokenType == "refresh"
     }
 
+    // Authorization: Bearer <token>
+    fun getUserIdFromToken(token: String): String {
+        val rawToken =  if (token.startsWith("Bearer ")) {
+            token.removePrefix("Bearer: ")
+        } else token
+        val claims = parseAllClaims(rawToken) ?: throw IllegalArgumentException("Invalid token.")
+        return claims.subject
+    }
+
     private fun parseAllClaims(token: String): Claims? {
         return try {
             Jwts.parser()
