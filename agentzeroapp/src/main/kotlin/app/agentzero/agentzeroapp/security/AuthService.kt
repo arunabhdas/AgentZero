@@ -41,6 +41,9 @@ class AuthService(
             throw BadCredentialsException("Invalid credentials")
         }
 
+        // Delete all previous refresh tokens for this user
+        refreshTokenRepository.deleteAllByUserId(user.id)
+
         val newAccessToken = jwtService.generateAccessToken(user.id.toHexString())
         val newRefreshToken = jwtService.generateRefreshToken(user.id.toHexString())
 
