@@ -3,6 +3,7 @@ package app.agentzero.agentzeroapp.controllers
 import app.agentzero.agentzeroapp.data.model.Note
 import app.agentzero.agentzeroapp.data.repository.NoteRepository
 import org.bson.types.ObjectId
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Repository
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -57,9 +58,9 @@ class NoteController(
     }
 
     @GetMapping
-    fun findByOwnerId(
-        @RequestParam(required = true) ownerId: String,
-    ): List<NoteResponse> {
+    fun findByOwnerId(): List<NoteResponse> {
+        val ownerId = SecurityContextHolder.getContext().authentication.principal as String
+
         return repository.findByOwnerId(ObjectId(ownerId)).map {
             it.toResponse()
         }
