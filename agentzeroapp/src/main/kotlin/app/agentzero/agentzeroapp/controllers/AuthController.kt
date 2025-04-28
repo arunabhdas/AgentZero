@@ -27,5 +27,18 @@ class AuthController(
         authService.register(body.email, body.password)
     }
 
+    @PostMapping("/login")
+    fun login(
+        @RequestBody body: AuthRequest
+    ): AuthService.TokenPair {
+        return authService.login(body.email, body.password)
+    }
+
+    @PostMapping("/refresh")
+    fun refresh(
+        @RequestBody body: RefreshRequest
+    ): AuthService.TokenPair {
+        return authService.refresh(body.refreshToken)
+    }
 
 }
