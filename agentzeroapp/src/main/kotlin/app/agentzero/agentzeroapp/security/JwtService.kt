@@ -15,7 +15,7 @@ import kotlin.math.exp
 
 @Service
 class JwtService(
-    @Value("JWT_SECRET_BASE64") private val jwtSecret: String
+    @Value("\${jwt.secret}") private val jwtSecret: String
 ) {
 
     private val secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))
