@@ -54,6 +54,34 @@ class AuthService(
         )
     }
 
+    fun refresh(refreshToken: String): TokenPair {
+        if (!jwtService.validateRefreshToken(refreshToken)) {
+            throw IllegalArgumentException("Invalid refresh token.")
+        }
+
+        val userId = jwtService.getUserIdFromToken(refreshToken)
+        val user = userRepository.findById(ObjectId(userId)).orElseThrow {
+            IllegalArgumentException("Invalid refresh token.")
+        }
+
+        val hashedRefreshToken = hashToken(refreshToken)
+        refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashedRefreshToken)
+            ?: throw IllegalArgumentException("Refresh token not recognized (maybe used or expired")
+
+        refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashedRefreshToken)
+
+        val newAccessToken = jwtService.generateAccessToken(userId)
+        val newRefreshToken = jwtService.generateRefreshToken(userId)
+
+        storeRefreshToken(user.id, newRefreshToken)
+
+        return TokenPair(
+            accessToken = newAccessToken,
+            refreshToken = newRefreshToken
+        )
+
+    }
+
     private fun storeRefreshToken(userId: ObjectId, rawRefreshToken: String) {
         val hashed = hashEncoder.encode(rawRefreshToken)
         val expiryMs = jwtService.refreshTokenValidityMs
