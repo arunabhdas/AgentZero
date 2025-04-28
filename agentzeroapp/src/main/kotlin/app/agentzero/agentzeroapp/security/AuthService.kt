@@ -1,15 +1,23 @@
 package app.agentzero.agentzeroapp.security
 
+import app.agentzero.agentzeroapp.data.model.RefreshToken
 import app.agentzero.agentzeroapp.data.model.User
+import app.agentzero.agentzeroapp.data.repository.RefreshTokenRepository
 import app.agentzero.agentzeroapp.data.repository.UserRepository
+import org.bson.types.ObjectId
+import java.security.MessageDigest
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.stereotype.Service
+import java.sql.Ref
+import java.time.Instant
+import java.util.Base64
 
 @Service
 class AuthService(
     private val jwtService: JwtService,
     private val userRepository: UserRepository,
-    private val hashEncoder: HashEncoder
+    private val hashEncoder: HashEncoder,
+    private val refreshTokenRepository: RefreshTokenRepository
 ) {
     data class TokenPair(
         val accessToken: String,
@@ -40,4 +48,26 @@ class AuthService(
             refreshToken = newRefreshToken
         )
     }
+
+    private fun storeRefreshToken(userId: ObjectId, rawRefreshToken: String) {
+        val hashed = hashEncoder.encode(rawRefreshToken)
+        val expiryMs = jwtService.refreshTokenValidityMs
+        val expiresAt = Instant.now().plusMillis(expiryMs)
+
+        refreshTokenRepository.save(
+            RefreshToken(
+                userId = userId,
+                expiresAt = expiresAt,
+                hashedToken = hashed
+            )
+        )
+    }
+
+    private fun hashToken(token: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(token.encodeToByteArray())
+        return Base64.getEncoder().encodeToString(hashBytes)
+    }
+
+
 }
