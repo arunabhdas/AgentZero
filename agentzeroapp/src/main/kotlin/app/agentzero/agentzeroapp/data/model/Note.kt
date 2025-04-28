@@ -8,10 +8,10 @@ import java.time.Instant
 
 @Document("notes")
 data class Note(
+    @Id val id: ObjectId = ObjectId.get(),
     val title: String,
     val content: String,
     val color: String,
     val createdAt: Instant,
-    val ownerId: ObjectId,
-    @Id val id: ObjectId = ObjectId.get()
+    val ownerId: String
 )

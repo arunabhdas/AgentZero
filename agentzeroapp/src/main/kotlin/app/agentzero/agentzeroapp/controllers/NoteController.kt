@@ -52,7 +52,7 @@ class NoteController(
                 content = body.content,
                 color = body.color,
                 createdAt = Instant.now(),
-                ownerId = ObjectId(ownerId)
+                ownerId = ownerId
             )
         )
         return note.toResponse()
@@ -63,7 +63,7 @@ class NoteController(
     fun findByOwnerId(): List<NoteResponse> {
         val ownerId = SecurityContextHolder.getContext().authentication.principal as String
 
-        return repository.findByOwnerId(ObjectId(ownerId)).map {
+        return repository.findByOwnerId(ownerId).map {
             it.toResponse()
         }
     }
@@ -74,7 +74,7 @@ class NoteController(
             IllegalArgumentException("Note not found")
         }
         val ownerId = SecurityContextHolder.getContext().authentication.principal as String
-        if (note.ownerId.toHexString() == ownerId) {
+        if (note.ownerId == ownerId) {
             repository.deleteById(ObjectId(id))
         }
     }
