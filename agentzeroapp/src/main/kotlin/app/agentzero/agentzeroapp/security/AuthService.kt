@@ -61,20 +61,24 @@ class AuthService(
             throw IllegalArgumentException("Invalid refresh token.")
         }
 
+        // Assumes getUserIdFromToken also validates expiry
         val userId = jwtService.getUserIdFromToken(refreshToken)
         val user = userRepository.findById(ObjectId(userId)).orElseThrow {
             IllegalArgumentException("Invalid refresh token.")
         }
 
-        val hashedRefreshToken = hashToken(refreshToken)
-        refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashedRefreshToken)
+        // Find the raw token in the repository
+        refreshTokenRepository.findByUserIdAndToken(user.id, refreshToken)
             ?: throw IllegalArgumentException("Refresh token not recognized (maybe used or expired")
 
-        refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashedRefreshToken)
+        // Delete the used raw token
+        refreshTokenRepository.deleteByUserIdAndToken(user.id, refreshToken)
 
+        // Generate new tokens
         val newAccessToken = jwtService.generateAccessToken(userId)
         val newRefreshToken = jwtService.generateRefreshToken(userId)
 
+        // Store the new raw refresh token
         storeRefreshToken(user.id, newRefreshToken)
 
         return TokenPair(
@@ -85,7 +89,6 @@ class AuthService(
     }
 
     private fun storeRefreshToken(userId: ObjectId, rawRefreshToken: String) {
-        val hashed = hashEncoder.encode(rawRefreshToken)
         val expiryMs = jwtService.refreshTokenValidityMs
         val expiresAt = Instant.now().plusMillis(expiryMs)
 
@@ -93,16 +96,9 @@ class AuthService(
             RefreshToken(
                 userId = userId,
                 expiresAt = expiresAt,
-                hashedToken = hashed
+                token = rawRefreshToken
             )
         )
     }
-
-    private fun hashToken(token: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        val hashBytes = digest.digest(token.encodeToByteArray())
-        return Base64.getEncoder().encodeToString(hashBytes)
-    }
-
 
 }

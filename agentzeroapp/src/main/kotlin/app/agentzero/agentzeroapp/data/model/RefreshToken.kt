@@ -10,7 +10,7 @@ data class RefreshToken(
     val userId: ObjectId,
     @Indexed(expireAfter = "0s")
     val expiresAt: Instant,
-    val hashedToken: String,
+    val token: String,
     val createdAt: Instant = Instant.now()
 
 )

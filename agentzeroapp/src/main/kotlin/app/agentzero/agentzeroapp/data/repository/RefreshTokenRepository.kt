@@ -5,6 +5,8 @@ import org.bson.types.ObjectId
 import org.springframework.data.mongodb.repository.MongoRepository
 
 interface RefreshTokenRepository: MongoRepository<RefreshToken, ObjectId> {
-    fun findByUserIdAndHashedToken(userId: ObjectId, hashedToken: String): RefreshToken?
-    fun deleteByUserIdAndHashedToken(userId: ObjectId, hashedToken: String)
+    // Find by raw token
+    fun findByUserIdAndToken(userId: ObjectId, token: String): RefreshToken?
+    // Delete by raw token
+    fun deleteByUserIdAndToken(userId: ObjectId, token: String)
 }
