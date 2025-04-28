@@ -56,10 +56,30 @@ class JwtService(
         )
     }
 
+    /* TODO-FIXME-CLEANUP
     fun validateAccessToken(token: String): Boolean {
         val claims = parseAllClaims(token) ?: return false
         val tokenType = claims["type"] as? String ?: return false
         return tokenType == "access"
+    }
+    */
+
+    fun validateAccessToken(token: String): Boolean {
+        try {
+            val claims = parseAllClaims(token) ?: return false
+            val tokenType = claims["type"] as? String ?: return false
+
+            // Check if token is expired
+            val expiration = claims.expiration
+            if (expiration.before(Date())) {
+                return false
+            }
+
+            return tokenType == "access"
+        } catch (e: Exception) {
+            println("Token validation error: ${e.message}")
+            return false
+        }
     }
 
     fun validateRefreshToken(token: String): Boolean {
@@ -74,6 +94,7 @@ class JwtService(
         return claims.subject
     }
 
+    /* TODO-FIXME-CLEANUP
     private fun parseAllClaims(token: String): Claims? {
         val rawToken =  if (token.startsWith("Bearer ")) {
             token.removePrefix("Bearer ")
@@ -85,6 +106,20 @@ class JwtService(
                 .parseSignedClaims(token)
                 .payload
         } catch (e: Exception) {
+            null
+        }
+    }
+    */
+
+    private fun parseAllClaims(token: String): Claims? {
+        return try {
+            Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .payload
+        } catch (e: Exception) {
+            println("Failed to parse token: ${e.message}")
             null
         }
     }

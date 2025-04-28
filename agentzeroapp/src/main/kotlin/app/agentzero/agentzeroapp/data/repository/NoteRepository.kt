@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.repository.MongoRepository
 
 interface NoteRepository:MongoRepository<Note, ObjectId> {
 
-    fun findByOwnerId(ownerId: String): List<Note>
+    fun findByOwnerId(ownerId: ObjectId): List<Note>
 
 
 }

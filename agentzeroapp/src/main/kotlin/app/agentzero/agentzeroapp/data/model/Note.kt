@@ -13,5 +13,5 @@ data class Note(
     val content: String,
     val color: String,
     val createdAt: Instant,
-    val ownerId: String
+    val ownerId: ObjectId
 )

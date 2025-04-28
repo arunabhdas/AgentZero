@@ -2,25 +2,24 @@ package app.agentzero.agentzeroapp.controllers
 
 import app.agentzero.agentzeroapp.data.model.Note
 import app.agentzero.agentzeroapp.data.repository.NoteRepository
+import app.agentzero.agentzeroapp.data.repository.UserRepository
 import org.bson.types.ObjectId
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.stereotype.Repository
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
-import javax.print.attribute.standard.JobKOctets
 
 
 @RestController
 @RequestMapping("/notes")
 class NoteController(
     private val repository: NoteRepository,
+    private val userRepository: UserRepository,
     private val noteRepository: NoteRepository
 ) {
     data class NoteRequest(
@@ -45,25 +44,30 @@ class NoteController(
         body: NoteRequest
     ): NoteResponse {
         val ownerId = SecurityContextHolder.getContext().authentication.principal as String
+
+        // Only handle noteId conversion, leave ownerId as string
+        val noteId = body.id?.let {
+            try { ObjectId(it) } catch (e: IllegalArgumentException) { ObjectId.get() }
+        } ?: ObjectId.get()
+
         val note = repository.save(
             Note(
-                id = body.id?.let { ObjectId(it)} ?: ObjectId.get(),
+                id = noteId,
                 title = body.title,
                 content = body.content,
                 color = body.color,
                 createdAt = Instant.now(),
-                ownerId = ownerId
+                ownerId = ObjectId(ownerId)
             )
         )
         return note.toResponse()
-
     }
 
     @GetMapping
     fun findByOwnerId(): List<NoteResponse> {
         val ownerId = SecurityContextHolder.getContext().authentication.principal as String
 
-        return repository.findByOwnerId(ownerId).map {
+        return repository.findByOwnerId(ObjectId(ownerId)).map {
             it.toResponse()
         }
     }
@@ -74,8 +78,14 @@ class NoteController(
             IllegalArgumentException("Note not found")
         }
         val ownerId = SecurityContextHolder.getContext().authentication.principal as String
-        if (note.ownerId == ownerId) {
-            repository.deleteById(ObjectId(id))
+        // Try to convert authentication principal to ObjectId for comparison
+        try {
+            if (note.ownerId.toHexString() == ownerId) {
+                repository.deleteById(ObjectId(id))
+            }
+        } catch (e: IllegalArgumentException) {
+            // If we can't convert the string to ObjectId, we can't match the owner
+            throw IllegalArgumentException("Note not found or not owned by you")
         }
     }
 
