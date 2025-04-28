@@ -20,7 +20,8 @@ import java.time.Instant
 @RestController
 @RequestMapping("/notes")
 class NoteController(
-    private val repository: NoteRepository
+    private val repository: NoteRepository,
+    private val noteRepository: NoteRepository
 ) {
     data class NoteRequest(
         val id: String?,
@@ -68,7 +69,13 @@ class NoteController(
 
     @DeleteMapping(path = ["/{id}"])
     fun deleteById(@PathVariable id: String) {
-        repository.deleteById(ObjectId(id))
+        val note = noteRepository.findById(ObjectId(id)).orElseThrow {
+            IllegalArgumentException("Note not found")
+        }
+        val ownerId = SecurityContextHolder.getContext().authentication.principal as String
+        if (note.ownerId.toHexString() == ownerId) {
+            repository.deleteById(ObjectId(id))
+        }
     }
 
 
