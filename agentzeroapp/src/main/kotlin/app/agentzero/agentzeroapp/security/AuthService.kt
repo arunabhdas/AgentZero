@@ -104,4 +104,37 @@ class AuthService(
         )
     }
 
+    /**
+     * Logs out a user by invalidating their refresh token
+     * @param refreshToken The refresh token to invalidate
+     * @return True if the token was successfully invalidated, false otherwise
+     */
+    fun logout(refreshToken: String): Boolean {
+        try {
+            // Validate the token format (not expiry)
+            if (!jwtService.validateRefreshToken(refreshToken)) {
+                return false
+            }
+
+            // Extract user ID from token
+            val userId = jwtService.getUserIdFromToken(refreshToken)
+
+            // Find the user
+            val userObjectId = try {
+                ObjectId(userId)
+            } catch (e: IllegalArgumentException) {
+                return false
+            }
+
+            // Delete the specific refresh token
+            refreshTokenRepository.deleteByUserIdAndToken(userObjectId, refreshToken)
+
+            return true
+        } catch (e: Exception) {
+            // Log the error but don't expose details to caller
+            // Treat logout as idempotent - always succeed from user perspective
+            return true
+        }
+    }
+
 }

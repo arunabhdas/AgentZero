@@ -41,4 +41,10 @@ class AuthController(
         return authService.refresh(body.refreshToken)
     }
 
+    @PostMapping("/logout")
+    fun logout(@RequestBody body: RefreshRequest): Map<String, Boolean> {
+        val success = authService.logout(body.refreshToken)
+        return mapOf("success" to success)
+    }
+
 }
