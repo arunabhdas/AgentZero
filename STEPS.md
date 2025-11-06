@@ -338,6 +338,10 @@ chmod +x gradlew
 
 ```bash
 ./gradlew clean build
+
+OR
+
+./gradlew clean build -x test
 ```
 
 **Windows**:
@@ -364,6 +368,11 @@ BUILD SUCCESSFUL in Xs
 **Step 6.1**: Start the application using Gradle:
 
 ```bash
+# Set the environment variables from your .env file
+export MONGODB_CONNECTION_STRING="mongodb+srv://your-username:your-password@cluster0.xxxxx.mongodb.net/agentzero?retryWrites=true&w=majority"
+export JWT_SECRET_BASE64="your-jwt-secret-from-step-3"
+
+# Then run the application
 ./gradlew bootRun
 ```
 
