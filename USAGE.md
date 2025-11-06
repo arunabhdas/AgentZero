@@ -21,6 +21,8 @@ Production:  https://api.agentzero.com
 4. **Refresh** token when access token expires
 5. **Logout** to invalidate refresh token
 
+**📚 For detailed token management, security best practices, and implementation examples, see [TOKENS.md](TOKENS.md)**
+
 ## API Endpoints
 
 ### Authentication Endpoints

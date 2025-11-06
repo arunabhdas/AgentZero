@@ -600,46 +600,44 @@ curl -X POST http://localhost:8090/auth/logout \
 
 ## Step 8: Testing with Postman (Alternative)
 
-If you prefer a GUI, use Postman:
+If you prefer a GUI, use Postman with our pre-built collection:
 
 **Step 8.1**: Download and install [Postman](https://www.postman.com/downloads/)
 
-**Step 8.2**: Create a new Collection called "AgentZero"
+**Step 8.2**: Import the AgentZero Collection
 
-**Step 8.3**: Add requests:
+1. Open Postman
+2. Click **Import** button (top left)
+3. Select **File** tab
+4. Choose `AgentZero-Postman-Collection.json` from the repository root
+5. Click **Import**
 
-1. **Register** - POST `http://localhost:8090/auth/register`
-   - Body (JSON):
-     ```json
-     {
-       "email": "testuser@example.com",
-       "password": "SecurePassword123"
-     }
-     ```
+**Step 8.3**: Configure and Test
 
-2. **Login** - POST `http://localhost:8090/auth/login`
-   - Body (JSON): Same as Register
-   - In Tests tab, add:
-     ```javascript
-     const response = pm.response.json();
-     pm.environment.set("accessToken", response.accessToken);
-     pm.environment.set("refreshToken", response.refreshToken);
-     ```
+The collection includes:
+- ✅ **Automatic token management** - Login saves tokens automatically
+- ✅ **All API endpoints** - Auth (register, login, refresh, logout) and Notes (CRUD)
+- ✅ **Built-in tests** - Validates responses automatically
+- ✅ **Pre-configured variables** - Ready to use
 
-3. **Get Notes** - GET `http://localhost:8090/notes`
-   - Headers: `Authorization: Bearer {{accessToken}}`
+**Quick Test Flow**:
+1. Run **Authentication** → **Register**
+2. Run **Authentication** → **Login** (tokens saved automatically!)
+3. Run **Notes** → **Create Note**
+4. Run **Notes** → **Get All Notes**
+5. Run **Notes** → **Update Note**
+6. Run **Notes** → **Delete Note**
 
-4. **Create Note** - POST `http://localhost:8090/notes`
-   - Headers: `Authorization: Bearer {{accessToken}}`
-   - Body (JSON):
-     ```json
-     {
-       "id": null,
-       "title": "Test Note",
-       "content": "Content here",
-       "color": "#FFD700"
-     }
-     ```
+**📚 For detailed Postman usage, see `POSTMAN-GUIDE.md`**
+
+**Manual Setup (Alternative)**:
+
+If you prefer to create your own collection:
+
+1. Create a new Collection called "AgentZero"
+2. Add collection variables: `baseUrl`, `accessToken`, `refreshToken`
+3. Add requests for each endpoint (see USAGE.md for details)
+4. Configure Bearer token authentication using `{{accessToken}}`
 
 ---
 
@@ -851,10 +849,13 @@ Now that you have the application running locally:
 ## Additional Resources
 
 - **API Usage Guide**: See `USAGE.md` for detailed API documentation
+- **Token Management Guide**: See `TOKENS.md` for JWT authentication flow and best practices
+- **Postman Collection Guide**: See `POSTMAN-GUIDE.md` for GUI testing
 - **Developer Documentation**: See `DOCUMENTATION.md` for code architecture
 - **Deployment Guide**: See `DEPLOY.md` for production deployment
 - **Spring Boot Docs**: https://spring.io/projects/spring-boot
 - **MongoDB Docs**: https://docs.mongodb.com/
+- **MongoDB Atlas**: https://cloud.mongodb.com/
 
 ---
 

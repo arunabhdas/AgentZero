@@ -97,6 +97,8 @@ The application follows a standard layered architecture:
 2. **Refresh Token**: Long-lived (30 days), used to obtain new access tokens
 3. **Token Storage**: Refresh tokens stored in MongoDB with TTL indexes for automatic cleanup
 
+**📚 For detailed token management, usage examples, and best practices, see [TOKENS.md](TOKENS.md)**
+
 #### Authentication Filter Chain
 ```
 Request → JwtAuthFilter → UsernamePasswordAuthenticationFilter → Controller

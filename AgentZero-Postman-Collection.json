@@ -1,0 +1,505 @@
+{
+	"info": {
+		"_postman_id": "agentzero-api-collection",
+		"name": "AgentZero API",
+		"description": "Complete API collection for AgentZero backend with automatic token management.\n\nHow to use:\n1. Set the baseUrl variable to your server (default: http://localhost:8090)\n2. Run 'Register' to create a new user\n3. Run 'Login' - tokens will be automatically saved\n4. All other requests will automatically use the saved accessToken\n5. Use 'Refresh Token' when access token expires\n6. Use 'Logout' to invalidate refresh token",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"User registered successfully\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user account. Provide email and password."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has tokens\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('accessToken');",
+									"    pm.expect(jsonData).to.have.property('refreshToken');",
+									"});",
+									"",
+									"// Automatically save tokens to collection variables",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"accessToken\", jsonData.accessToken);",
+									"pm.collectionVariables.set(\"refreshToken\", jsonData.refreshToken);",
+									"",
+									"console.log(\"Access token saved:\", jsonData.accessToken.substring(0, 20) + \"...\");",
+									"console.log(\"Refresh token saved:\", jsonData.refreshToken.substring(0, 20) + \"...\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login with email and password. Returns access token (15 min) and refresh token (30 days). Tokens are automatically saved to collection variables."
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has new tokens\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('accessToken');",
+									"    pm.expect(jsonData).to.have.property('refreshToken');",
+									"});",
+									"",
+									"// Automatically update tokens",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"accessToken\", jsonData.accessToken);",
+									"pm.collectionVariables.set(\"refreshToken\", jsonData.refreshToken);",
+									"",
+									"console.log(\"Tokens refreshed and updated\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/refresh",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "Exchange refresh token for new access and refresh tokens. Old refresh token is invalidated. New tokens are automatically saved."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Logout successful\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"// Clear tokens from collection variables",
+									"pm.collectionVariables.unset(\"accessToken\");",
+									"pm.collectionVariables.unset(\"refreshToken\");",
+									"",
+									"console.log(\"Logged out - tokens cleared\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Logout and invalidate refresh token. Tokens are cleared from collection variables."
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for user registration, login, token refresh, and logout."
+		},
+		{
+			"name": "Notes",
+			"item": [
+				{
+					"name": "Create Note",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Note created successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('title');",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"    pm.expect(jsonData).to.have.property('color');",
+									"    pm.expect(jsonData).to.have.property('createdAt');",
+									"});",
+									"",
+									"// Save the note ID for other requests",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"lastNoteId\", jsonData.id);",
+									"console.log(\"Note created with ID:\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": null,\n  \"title\": \"My Note from Postman\",\n  \"content\": \"This is a test note created via Postman API\",\n  \"color\": \"#FFD700\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notes"
+							]
+						},
+						"description": "Create a new note. Set id to null for new notes. Returns the created note with generated ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Note",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Note updated successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData.title).to.include('Updated');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{lastNoteId}}\",\n  \"title\": \"Updated Note Title\",\n  \"content\": \"This note has been updated via Postman\",\n  \"color\": \"#FF6347\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notes"
+							]
+						},
+						"description": "Update an existing note by providing its ID. Uses the lastNoteId variable saved from Create Note."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Notes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"console.log(\"Total notes:\", jsonData.length);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notes"
+							]
+						},
+						"description": "Get all notes for the authenticated user. Returns an array of note objects."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Note",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"console.log(\"Note deleted successfully\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notes/{{lastNoteId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notes",
+								"{{lastNoteId}}"
+							]
+						},
+						"description": "Delete a note by ID. Uses the lastNoteId variable. Only the owner can delete their notes."
+					},
+					"response": []
+				}
+			],
+			"description": "Notes management endpoints - create, read, update, and delete notes."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// This runs before every request",
+					"// Check if accessToken exists and log it",
+					"const accessToken = pm.collectionVariables.get(\"accessToken\");",
+					"if (accessToken) {",
+					"    console.log(\"Using access token:\", accessToken.substring(0, 20) + \"...\");",
+					"} else {",
+					"    console.log(\"No access token set. Please login first.\");",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// This runs after every request",
+					"// Check for 401 errors and suggest refresh",
+					"if (pm.response.code === 401) {",
+					"    console.warn(\"⚠️ 401 Unauthorized - Your access token may have expired. Try the 'Refresh Token' request.\");",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8090",
+			"type": "string"
+		},
+		{
+			"key": "userEmail",
+			"value": "testuser@example.com",
+			"type": "string"
+		},
+		{
+			"key": "userPassword",
+			"value": "SecurePassword123",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "lastNoteId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
