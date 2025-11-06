@@ -7,7 +7,7 @@ This guide provides step-by-step instructions to run and test the AgentZero appl
 Before starting, ensure you have the following installed:
 
 - [ ] Java Development Kit (JDK) 17 or higher
-- [ ] MongoDB (local installation or Docker)
+- [ ] MongoDB (local installation, Docker, or MongoDB Atlas account)
 - [ ] Terminal/Command Prompt access
 - [ ] Text editor (optional, for viewing files)
 - [ ] cURL or Postman (for API testing)
@@ -56,9 +56,9 @@ javac -version
 
 ---
 
-## Step 2: Install and Start MongoDB
+## Step 2: Setup MongoDB
 
-You have two options: Docker (recommended, easier) or native installation.
+You have three options: MongoDB Atlas (cloud, recommended if you already have an account), Docker (recommended for local), or native installation.
 
 ### Option A: MongoDB with Docker (Recommended)
 
@@ -140,6 +140,87 @@ mongodb://localhost:27017/agentzero
 
 ---
 
+### Option C: MongoDB Atlas (Cloud-Hosted Database)
+
+If you already have a MongoDB Atlas account with an existing database, use this option. No local installation needed!
+
+**Step 2.1**: Log into MongoDB Atlas
+- Visit [https://cloud.mongodb.com/](https://cloud.mongodb.com/)
+- Sign in with your credentials (email/password, Google, or GitHub)
+
+**Step 2.2**: Locate Your Cluster
+- Click **"Database"** in the left sidebar
+- You should see your existing cluster(s) listed
+
+**Step 2.3**: Get Your Connection String
+- Click the **"Connect"** button on your cluster
+- Select **"Connect your application"**
+- Choose **"Driver"** as connection method
+- Select **"Driver: Java"** and **"Version: 4.3 or later"**
+- Copy the connection string (it will look like):
+  ```
+  mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+  ```
+
+**Step 2.4**: Find Your Database Credentials
+
+If you don't remember your database user credentials:
+1. Go to **"Database Access"** in the left sidebar
+2. You'll see your database user(s) listed
+3. If you need to reset the password:
+   - Click **"Edit"** on your database user
+   - Click **"Edit Password"**
+   - Enter a new password and save it
+   - Click **"Update User"**
+
+**Step 2.5**: Complete Your Connection String
+
+Your final connection string should include:
+- Replace `<username>` with your database username
+- Replace `<password>` with your database password
+- Add `/agentzero` (database name) before the `?` character
+
+**Example transformation**:
+```
+Before: mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+After:  mongodb+srv://myuser:mypassword@cluster0.xxxxx.mongodb.net/agentzero?retryWrites=true&w=majority
+```
+
+**Step 2.6**: Whitelist Your IP Address
+
+MongoDB Atlas requires you to whitelist IP addresses for security:
+1. In Atlas, go to **"Network Access"** in the left sidebar
+2. Click **"Add IP Address"**
+3. Choose one of:
+   - **"Add Current IP Address"** (recommended for security)
+   - **"Allow Access from Anywhere"** (easier for development, less secure)
+4. Click **"Confirm"**
+
+**Step 2.7**: Verify Connection (Optional)
+
+You can test your connection string using MongoDB Shell:
+```bash
+mongosh "mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/agentzero?retryWrites=true&w=majority"
+```
+
+**Your MongoDB Connection String** (Atlas):
+```
+mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/agentzero?retryWrites=true&w=majority
+```
+
+**Benefits of MongoDB Atlas**:
+- ✅ Already set up and running (if you have existing database)
+- ✅ No local installation or Docker needed
+- ✅ Accessible from anywhere with internet
+- ✅ Automatic backups included
+- ✅ Free tier available (512MB storage)
+- ✅ Built-in monitoring and performance insights
+- ✅ Managed service (no maintenance required)
+
+**Note**: Since you're using an existing Atlas database, you can skip Docker/native installation and jump directly to Step 3!
+
+---
+
 ## Step 3: Generate JWT Secret
 
 The application requires a secure JWT secret key.
@@ -178,6 +259,12 @@ touch .env
 
 **Step 4.3**: Open `.env` in a text editor and add the following:
 
+**If using MongoDB Atlas (from Step 2, Option C) - Cloud Database**:
+```bash
+MONGODB_CONNECTION_STRING=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/agentzero?retryWrites=true&w=majority
+JWT_SECRET_BASE64=YOUR_GENERATED_SECRET_HERE
+```
+
 **If using Docker MongoDB (from Step 2, Option A)**:
 ```bash
 MONGODB_CONNECTION_STRING=mongodb://admin:admin123@localhost:27017/agentzero?authSource=admin
@@ -192,7 +279,13 @@ JWT_SECRET_BASE64=YOUR_GENERATED_SECRET_HERE
 
 **Step 4.4**: Replace `YOUR_GENERATED_SECRET_HERE` with the secret from Step 3.
 
-**Example `.env` file**:
+**Example `.env` file (MongoDB Atlas)**:
+```bash
+MONGODB_CONNECTION_STRING=mongodb+srv://myuser:mypassword@cluster0.abc123.mongodb.net/agentzero?retryWrites=true&w=majority
+JWT_SECRET_BASE64=Ky8ZJ9X2vN5pQ7mR4tW6yB8cE1fH3gK0L9nM5oP2qS=
+```
+
+**Example `.env` file (Docker)**:
 ```bash
 MONGODB_CONNECTION_STRING=mongodb://admin:admin123@localhost:27017/agentzero?authSource=admin
 JWT_SECRET_BASE64=Ky8ZJ9X2vN5pQ7mR4tW6yB8cE1fH3gK0L9nM5oP2qS=
@@ -200,7 +293,13 @@ JWT_SECRET_BASE64=Ky8ZJ9X2vN5pQ7mR4tW6yB8cE1fH3gK0L9nM5oP2qS=
 
 **Step 4.5**: Export the environment variables in your terminal:
 
-**macOS/Linux**:
+**macOS/Linux (MongoDB Atlas)**:
+```bash
+export MONGODB_CONNECTION_STRING="mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/agentzero?retryWrites=true&w=majority"
+export JWT_SECRET_BASE64="YOUR_GENERATED_SECRET_HERE"
+```
+
+**macOS/Linux (Docker)**:
 ```bash
 export MONGODB_CONNECTION_STRING="mongodb://admin:admin123@localhost:27017/agentzero?authSource=admin"
 export JWT_SECRET_BASE64="YOUR_GENERATED_SECRET_HERE"
@@ -208,13 +307,13 @@ export JWT_SECRET_BASE64="YOUR_GENERATED_SECRET_HERE"
 
 **Windows (Command Prompt)**:
 ```cmd
-set MONGODB_CONNECTION_STRING=mongodb://admin:admin123@localhost:27017/agentzero?authSource=admin
+set MONGODB_CONNECTION_STRING=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/agentzero?retryWrites=true&w=majority
 set JWT_SECRET_BASE64=YOUR_GENERATED_SECRET_HERE
 ```
 
 **Windows (PowerShell)**:
 ```powershell
-$env:MONGODB_CONNECTION_STRING="mongodb://admin:admin123@localhost:27017/agentzero?authSource=admin"
+$env:MONGODB_CONNECTION_STRING="mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/agentzero?retryWrites=true&w=majority"
 $env:JWT_SECRET_BASE64="YOUR_GENERATED_SECRET_HERE"
 ```
 
@@ -605,6 +704,22 @@ kill -9 PID  # Replace PID with actual process ID
 2. Check connection string in environment variables
 3. Restart MongoDB: `docker restart agentzero-mongodb`
 
+### Problem: "Cannot connect to MongoDB Atlas"
+
+**Solution**:
+1. **Check IP Whitelist**: Go to Atlas → Network Access → Add your current IP
+2. **Verify Credentials**: Ensure username and password are correct in connection string
+3. **Check Connection String Format**: Should be `mongodb+srv://...` (with `srv`)
+4. **Database Name**: Ensure `/agentzero` is included before the `?`
+5. **Test Connection**: Use `mongosh "your-connection-string"` to test
+6. **Internet Connection**: MongoDB Atlas requires internet access
+7. **Firewall**: Check if your firewall is blocking MongoDB Atlas ports
+
+**Common Atlas Errors**:
+- `MongoTimeoutError`: IP not whitelisted or firewall blocking
+- `Authentication failed`: Wrong username/password
+- `getaddrinfo ENOTFOUND`: Check connection string format
+
 ### Problem: "JWT validation failed"
 
 **Solution**:
@@ -642,7 +757,20 @@ kill -9 PID  # Replace PID with actual process ID
 
 ## Quick Reference Commands
 
-### Start Everything
+### Start Everything (MongoDB Atlas)
+```bash
+# 1. Set environment variables (MongoDB Atlas is already running in cloud)
+export MONGODB_CONNECTION_STRING="mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/agentzero?retryWrites=true&w=majority"
+export JWT_SECRET_BASE64="your-secret-here"
+
+# 2. Navigate to app directory
+cd /Users/coder/repos/ad/githubrepos/AgentZero/agentzeroapp
+
+# 3. Run application
+./gradlew bootRun
+```
+
+### Start Everything (Docker MongoDB)
 ```bash
 # 1. Start MongoDB (Docker)
 docker start agentzero-mongodb
@@ -683,6 +811,14 @@ curl -X GET http://localhost:8090/notes \
 ```
 
 ### Stop Everything
+
+**If using MongoDB Atlas**:
+```bash
+# Stop Spring Boot (Ctrl+C in running terminal)
+# MongoDB Atlas runs in cloud - no need to stop
+```
+
+**If using Docker MongoDB**:
 ```bash
 # 1. Stop Spring Boot (Ctrl+C in running terminal)
 # 2. Stop MongoDB
@@ -719,7 +855,9 @@ If you encounter issues:
 
 1. Check this troubleshooting section
 2. Review application logs in the terminal
-3. Verify MongoDB logs: `docker logs agentzero-mongodb`
+3. Verify MongoDB status:
+   - **Atlas**: Check [https://cloud.mongodb.com/](https://cloud.mongodb.com/) → Clusters
+   - **Docker**: `docker logs agentzero-mongodb`
 4. Check environment variables: `echo $MONGODB_CONNECTION_STRING`
 5. Refer to DOCUMENTATION.md for architecture details
 
